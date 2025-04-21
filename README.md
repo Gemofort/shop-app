@@ -52,6 +52,8 @@ Most likely you are getting a message
 
 To fix it you either need to follow conventional commit messages rules, or remove `.husky/pre-commit` file which enables the aforementioned rule.
 
-Links:
+**Links**:
+
 - S3 bucket static website: http://mytestappguide.s3-website-eu-west-1.amazonaws.com/
 - Cloudfront: https://d1kjvqhr8by4h7.cloudfront.net/
+- API Gateway: https://7zs4qhrg6g.execute-api.eu-west-1.amazonaws.com/prod
