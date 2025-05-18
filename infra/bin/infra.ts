@@ -2,7 +2,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { DeployWebAppStack } from '../lib/deploy-web-app-stack';
 import { ProductServiceStack } from '../lib/product-service-stack';
-// import { DatabaseStack } from '../lib/database-stack';
+import { ImportServiceStack } from '../lib/import-service-stack';
 
 const app = new cdk.App();
 new DeployWebAppStack(app, 'DeployTestAppStack', {
@@ -18,6 +18,6 @@ new DeployWebAppStack(app, 'DeployTestAppStack', {
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
 });
 
-// const databaseStack = new DatabaseStack(app, 'DatabaseStack');
-
 new ProductServiceStack(app, 'ProductServiceStack');
+
+new ImportServiceStack(app, 'ImportServiceStack');

@@ -1,0 +1,10 @@
+{
+  "name": "import-service-handlers",
+  "version": "1.0.0",
+  "description": "Lambda handlers for import service",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.511.0",
+    "csv-parser": "^3.0.0"
+  }
+}

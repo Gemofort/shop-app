@@ -11,7 +11,7 @@ import { tap } from 'rxjs/operators';
 
 @Injectable()
 export class ErrorPrintInterceptor implements HttpInterceptor {
-  constructor(private readonly notificationService: NotificationService) {}
+  constructor(private readonly notificationService: NotificationService) { }
 
   intercept(
     request: HttpRequest<unknown>,
@@ -20,10 +20,17 @@ export class ErrorPrintInterceptor implements HttpInterceptor {
     return next.handle(request).pipe(
       tap({
         error: () => {
-          const url = new URL(request.url);
+          let pathname = request.url;
+          try {
+            const url = new URL(request.url);
+            pathname = url.pathname;
+          } catch (e) {
+            // If URL parsing fails, use the original URL
+            console.warn('Failed to parse URL:', request.url);
+          }
 
           this.notificationService.showError(
-            `Request to "${url.pathname}" failed. Check the console for the details`,
+            `Request to "${pathname}" failed. Check the console for the details`,
             0
           );
         },
