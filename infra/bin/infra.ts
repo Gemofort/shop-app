@@ -3,6 +3,7 @@ import * as cdk from 'aws-cdk-lib';
 import { DeployWebAppStack } from '../lib/deploy-web-app-stack';
 import { ProductServiceStack } from '../lib/product-service-stack';
 import { ImportServiceStack } from '../lib/import-service-stack';
+import { CatalogBatchStack } from '../lib/catalog-batch-stack';
 
 const app = new cdk.App();
 new DeployWebAppStack(app, 'DeployTestAppStack', {
@@ -21,3 +22,5 @@ new DeployWebAppStack(app, 'DeployTestAppStack', {
 new ProductServiceStack(app, 'ProductServiceStack');
 
 new ImportServiceStack(app, 'ImportServiceStack');
+
+new CatalogBatchStack(app, 'CatalogBatchStack');
