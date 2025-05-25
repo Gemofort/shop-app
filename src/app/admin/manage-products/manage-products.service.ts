@@ -1,7 +1,11 @@
 import { Injectable } from '@angular/core';
 import { EMPTY, Observable } from 'rxjs';
 import { ApiService } from '../../core/api.service';
-import { switchMap } from 'rxjs/operators';
+import { switchMap, map, tap } from 'rxjs/operators';
+
+interface PreSignedUrlResponse {
+  signedUrl: string;
+}
 
 @Injectable()
 export class ManageProductsService extends ApiService {
@@ -14,24 +18,36 @@ export class ManageProductsService extends ApiService {
     }
 
     return this.getPreSignedUrl(file.name).pipe(
-      switchMap((url) =>
-        this.http.put(url, file, {
+      tap(url => console.log('Pre-signed URL:', url, typeof url)),
+      switchMap((url: string) => {
+        console.log('Using URL for PUT:', url, typeof url);
+        return this.http.put(url, file, {
           headers: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             'Content-Type': 'text/csv',
           },
-        }),
-      ),
+        });
+      }),
     );
   }
 
   private getPreSignedUrl(fileName: string): Observable<string> {
     const url = this.getUrl('import', 'import');
+    console.log("Request URL:", url);
 
-    return this.http.get<string>(url, {
+    return this.http.get<PreSignedUrlResponse>(url, {
       params: {
         name: fileName,
       },
-    });
+    }).pipe(
+      tap(response => console.log('Raw response:', response)),
+      map(response => {
+        if (typeof response === 'string') {
+          const parsed = JSON.parse(response) as PreSignedUrlResponse;
+          return parsed.signedUrl;
+        }
+        return response.signedUrl;
+      })
+    );
   }
 }
