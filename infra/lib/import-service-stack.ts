@@ -1,8 +1,9 @@
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as s3n from 'aws-cdk-lib/aws-s3-notifications';
+import * as sqs from 'aws-cdk-lib/aws-sqs';
+import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import { Construct } from 'constructs';
 import path from 'path';
 
@@ -35,6 +36,13 @@ export class ImportServiceStack extends cdk.Stack {
       ],
     });
 
+    // Reference existing SQS Queue
+    const catalogItemsQueue = sqs.Queue.fromQueueArn(
+      this,
+      'CatalogItemsQueue',
+      `arn:aws:sqs:${this.region}:${this.account}:catalogItemsQueue`
+    );
+
     // Create Lambda function for file upload
     const importProductsFile = new lambda.Function(this, 'ImportProductsFile', {
       runtime: lambda.Runtime.NODEJS_18_X,
@@ -51,7 +59,8 @@ export class ImportServiceStack extends cdk.Stack {
       handler: 'import-file-parser.main',
       code: lambda.Code.fromAsset(path.join(__dirname, './handlers')),
       environment: {
-        BUCKET_NAME: importBucket.bucketName
+        BUCKET_NAME: importBucket.bucketName,
+        QUEUE_URL: catalogItemsQueue.queueUrl,
       }
     });
 
@@ -68,12 +77,27 @@ export class ImportServiceStack extends cdk.Stack {
 
     const api = new apigateway.RestApi(this, 'ImportProductsApi', {
       restApiName: 'Import Products Service',
-      description: 'API for importing products'
+      description: 'API for importing products',
+      defaultCorsPreflightOptions: {
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
+        allowMethods: apigateway.Cors.ALL_METHODS,
+        allowHeaders: [
+          'Content-Type',
+          'X-Amz-Date',
+          'Authorization',
+          'X-Api-Key',
+          'X-Amz-Security-Token',
+          'X-Amz-User-Agent'
+        ],
+      },
     });
 
     const importProductsIntegration = new apigateway.LambdaIntegration(importProductsFile);
 
     api.root.addResource('import')
       .addMethod('GET', importProductsIntegration);
+
+    // Grant SQS permissions to the import-file-parser Lambda
+    catalogItemsQueue.grantSendMessages(importFileParser);
   }
 }
