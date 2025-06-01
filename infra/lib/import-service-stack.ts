@@ -94,8 +94,17 @@ export class ImportServiceStack extends cdk.Stack {
 
     const importProductsIntegration = new apigateway.LambdaIntegration(importProductsFile);
 
+    // Reference the existing BasicAuthorizer Lambda function
+    const authorizer = new apigateway.TokenAuthorizer(this, 'ImportBasicAuthorizer', {
+      handler: lambda.Function.fromFunctionName(this, 'BasicAuthorizerFunction', 'AuthorizationServiceStack-BasicAuthorizer2B49C1FC-HsJfCeVFzZ8J'),
+    });
+
+    // Add authorizer to the import endpoint
     api.root.addResource('import')
-      .addMethod('GET', importProductsIntegration);
+      .addMethod('GET', importProductsIntegration, {
+        authorizer: authorizer,
+        authorizationType: apigateway.AuthorizationType.CUSTOM,
+      });
 
     // Grant SQS permissions to the import-file-parser Lambda
     catalogItemsQueue.grantSendMessages(importFileParser);
